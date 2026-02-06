@@ -67,9 +67,30 @@ def aggregate_per_atom_to_structure(
     atoms_num_list: Iterable[int],
     map_func=np.linalg.norm,
     axis: int = 0,
+    symbols_list: list[list[str]] | None = None,
 ) -> npt.NDArray[np.float32]:
-    """Aggregate per-atom data into per-structure values based on atom counts."""
+    """Aggregate per-atom data into per-structure values based on atom counts.
+    
+    If symbols_list is provided, only Li atoms are used for aggregation.
+    """
     split_arrays = split_by_natoms(array, atoms_num_list)
+    
+    if symbols_list is not None:
+        # Filter to only include Li atoms
+        filtered_arrays = []
+        for arr, symbols in zip(split_arrays, symbols_list):
+            li_indices = [i for i, sym in enumerate(symbols) if sym == 'Li']
+            if len(li_indices) > 0:
+                filtered_arrays.append(arr[li_indices])
+            else:
+                # If no Li atoms, use empty array or handle appropriately
+                # Keep same dimensionality but with zero/empty result
+                if arr.ndim == 1:
+                    filtered_arrays.append(np.array([0.0], dtype=np.float32))
+                else:
+                    filtered_arrays.append(np.zeros((1, arr.shape[1]), dtype=np.float32))
+        split_arrays = filtered_arrays
+    
     func = partial(map_func, axis=axis)
     return np.array(list(map(func, split_arrays)))
 

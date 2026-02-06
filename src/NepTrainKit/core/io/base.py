@@ -2016,7 +2016,8 @@ class ResultData(QObject):
 
         if desc_array.size != 0:
             if desc_array.shape[0] == np.sum(self.atoms_num_list):
-                desc_array = aggregate_per_atom_to_structure(desc_array, self.atoms_num_list, map_func=np.mean, axis=0)
+                symbols_list = [s.get_chemical_symbols() for s in self.structure.now_data]
+                desc_array = aggregate_per_atom_to_structure(desc_array, self.atoms_num_list, map_func=np.mean, axis=0, symbols_list=symbols_list)
             elif desc_array.shape[0] == self.atoms_num_list.shape[0]:
                 pass
             else:

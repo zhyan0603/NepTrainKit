@@ -334,14 +334,16 @@ class SparseSampler:
                 # Aggregate per-atom to per-structure if needed
                 if t_desc.size != 0 and t_structs:
                     if t_desc.shape[0] == int(np.sum(t_counts)):
-                        t_desc = aggregate_per_atom_to_structure(t_desc, t_counts, map_func=np.mean, axis=0)
+                        t_symbols_list = [s.get_chemical_symbols() for s in t_structs]
+                        t_desc = aggregate_per_atom_to_structure(t_desc, t_counts, map_func=np.mean, axis=0, symbols_list=t_symbols_list)
                     elif t_desc.shape[0] == t_counts.shape[0]:
                         pass
                     else:
                         # Shape mismatch; best-effort fallback to compute
                         t_desc = self._result.nep_calc.get_structures_descriptor(t_structs,True)
                         if t_desc.size != 0:
-                            t_desc = aggregate_per_atom_to_structure(t_desc, t_counts, map_func=np.mean, axis=0)
+                            t_symbols_list = [s.get_chemical_symbols() for s in t_structs]
+                            t_desc = aggregate_per_atom_to_structure(t_desc, t_counts, map_func=np.mean, axis=0, symbols_list=t_symbols_list)
                 selected_data = np.asarray(t_desc, dtype=np.float32) if (t_desc is not None and t_desc.size != 0) else None
             except Exception:
                 # Gracefully ignore training seeding on errors
