@@ -71,7 +71,34 @@ def aggregate_per_atom_to_structure(
 ) -> npt.NDArray[np.float32]:
     """Aggregate per-atom data into per-structure values based on atom counts.
     
-    If symbols_list is provided, only Li atoms are used for aggregation.
+    Parameters
+    ----------
+    array : npt.NDArray[np.float32]
+        Per-atom data to aggregate.
+    atoms_num_list : Iterable[int]
+        Number of atoms in each structure.
+    map_func : callable, optional
+        Function to apply to each structure's data (default: np.linalg.norm).
+    axis : int, optional
+        Axis along which to apply map_func (default: 0).
+    symbols_list : list[list[str]] | None, optional
+        List of lists containing chemical symbols for each structure.
+        If provided, only Li atoms are used for aggregation.
+        If a structure has no Li atoms, zeros are returned for that structure.
+        Format: [[symbol1, symbol2, ...], [symbol1, symbol2, ...], ...]
+        Example: [['Li', 'Na', 'K'], ['Li', 'Li', 'Na']]
+    
+    Returns
+    -------
+    npt.NDArray[np.float32]
+        Aggregated per-structure values.
+        
+    Notes
+    -----
+    When symbols_list is provided:
+    - Only atoms with symbol 'Li' are included in aggregation
+    - If no Li atoms exist in a structure, a zero array is used as placeholder
+      to maintain consistent output dimensions
     """
     split_arrays = split_by_natoms(array, atoms_num_list)
     
@@ -83,8 +110,7 @@ def aggregate_per_atom_to_structure(
             if len(li_indices) > 0:
                 filtered_arrays.append(arr[li_indices])
             else:
-                # If no Li atoms, use empty array or handle appropriately
-                # Keep same dimensionality but with zero/empty result
+                # If no Li atoms, use zero array as placeholder to maintain dimensions
                 if arr.ndim == 1:
                     filtered_arrays.append(np.array([0.0], dtype=np.float32))
                 else:
