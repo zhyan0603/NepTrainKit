@@ -346,7 +346,8 @@ class NepCalculator:
     ) -> npt.NDArray[np.float32]:
         if not self.initialized:
             return np.array([])
-        types, boxes, positions, group_sizes = self.compose_structures(structures)
+        structure_list = self._ensure_structure_list(structures)
+        types, boxes, positions, group_sizes = self.compose_structures(structure_list)
         self.nep3.reset_cancel()
         with self._native_stdio_ctx():
             descriptor = self.nep3.get_structures_descriptor(types, boxes, positions)
@@ -355,7 +356,9 @@ class NepCalculator:
             return descriptor
         if not mean_descriptor:
             return descriptor
-        structure_descriptor = aggregate_per_atom_to_structure(descriptor, group_sizes, map_func=np.mean, axis=0)
+        # Get symbols for each structure to filter Li atoms
+        symbols_list = [structure.get_chemical_symbols() for structure in structure_list]
+        structure_descriptor = aggregate_per_atom_to_structure(descriptor, group_sizes, map_func=np.mean, axis=0, symbols_list=symbols_list)
         return structure_descriptor
 
     @timeit

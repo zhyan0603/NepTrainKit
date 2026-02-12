@@ -9,3 +9,5 @@
 .pytest_cache/
 tests/_sandbox_tmp/
 tests/_localappdata/
+*.so
+*.pyc
